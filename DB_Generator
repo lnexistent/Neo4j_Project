@@ -7,8 +7,10 @@ from dotenv import load_dotenv
 from geopy.geocoders import Nominatim
 from tqdm import tqdm
 
+env_path = "insert_the_path_here"
+
 # Load credentials from .env file
-load_dotenv()
+load_dotenv(env_path)
 
 # Retrieve Neo4j credentials from environment variables
 NEO4J_URL = os.getenv("NEO4J_URL")
