@@ -2,11 +2,24 @@ from neo4j import GraphDatabase
 from geopy.geocoders import Nominatim
 from tqdm import tqdm
 import random
+import os
 from datetime import timedelta
 from faker import Faker
+from dotenv import load_dotenv
 
-# Connessione al database Neo4j
-driver = GraphDatabase.driver("neo4j+s://f824646d.databases.neo4j.io", auth=("neo4j", "FoqxTbpaU4YiWrJHyY7OrzI2HIevo2anuoUah9WRhNs"))
+env_path = "insert_the_path_here"
+
+# Load credentials from .env file
+load_dotenv("C:/Users/Mattia/Documents/GitHub/Neo4j_Project/Examples_Cred.env")
+
+# Retrieve Neo4j credentials from environment variables
+NEO4J_URL = os.getenv("NEO4J_URL")
+NEO4J_USERNAME = os.getenv("NEO4J_USERNAME")
+NEO4J_PASSWORD = os.getenv("NEO4J_PASSWORD")
+
+# Create a connection to the Neo4j database
+driver = GraphDatabase.driver(NEO4J_URL, auth=(NEO4J_USERNAME, NEO4J_PASSWORD))
+
 
 # Funzione per ottenere le celle telefoniche collegate a una persona in una data e orario specifici
 def localizza_persona(data_inizio, data_fine, persona):
