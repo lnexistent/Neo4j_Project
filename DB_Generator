@@ -1,12 +1,22 @@
 from neo4j import GraphDatabase
 from faker import Faker
 import random
+import os
 from datetime import timedelta
+from dotenv import load_dotenv
 from geopy.geocoders import Nominatim
 from tqdm import tqdm
 
+# Load credentials from .env file
+load_dotenv()
+
+# Retrieve Neo4j credentials from environment variables
+NEO4J_URL = os.getenv("NEO4J_URL")
+NEO4J_USERNAME = os.getenv("NEO4J_USERNAME")
+NEO4J_PASSWORD = os.getenv("NEO4J_PASSWORD")
+
 # Create a connection to the Neo4j database
-driver = GraphDatabase.driver("url", auth=("username", "password"))
+driver = GraphDatabase.driver(NEO4J_URL, auth=(NEO4J_USERNAME, NEO4J_PASSWORD))
 
 # Instantiate Faker object and Geocoder
 fake = Faker()
