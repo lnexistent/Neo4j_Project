@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 env_path = "insert_the_path_here"
 
 # Load credentials from .env file
-load_dotenv("C:/Users/Mattia/Documents/GitHub/Neo4j_Project/Examples_Cred.env")
+load_dotenv()
 
 # Retrieve Neo4j credentials from environment variables
 NEO4J_URL = os.getenv("NEO4J_URL")
