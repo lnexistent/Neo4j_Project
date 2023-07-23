@@ -1,0 +1,83 @@
+from neo4j import GraphDatabase
+from faker import Faker
+import random
+from datetime import timedelta
+from geopy.geocoders import Nominatim
+from tqdm import tqdm
+
+# Create a connection to the Neo4j database
+driver = GraphDatabase.driver("url", auth=("username", "password"))
+
+# Instantiate Faker object and Geocoder
+fake = Faker()
+geolocator = Nominatim(user_agent="geo_position")
+
+# Generate random data and create relationships with timestamps and geolocation
+def create_random_relationships(num_relationships):
+    with driver.session() as session:
+        print("Creating random relationships...")
+        for _ in tqdm(range(num_relationships), desc="Progress"):
+            persona_name = fake.name()
+
+            # Create Persona node
+            session.run(
+                "MERGE (persona:Persona {nome: $nome})",
+                nome=persona_name
+            )
+
+            # Generate random number of SIM cards for the person
+            num_sims = random.randint(1, 3)  # Number of SIM cards for the person
+            for _ in range(num_sims):
+                sim_serial = fake.random_int(min=1000000, max=9999999)
+
+                # Create SIM node and connect it to Persona
+                session.run(
+                    "MATCH (persona:Persona {nome: $nome}) "
+                    "MERGE (sim:SIM {serial: $serial}) "
+                    "MERGE (persona)-[:POSSIEDE]->(sim)",
+                    nome=persona_name,
+                    serial=sim_serial
+                )
+
+                # Generate random timestamps and geolocation for each SIM
+                num_connections = random.randint(1, 5)  # Number of connections for the SIM card
+                for _ in range(num_connections):
+                    timestamp_connected = fake.date_time_this_year()
+                    timestamp_disconnected = timestamp_connected + timedelta(minutes=random.randint(1, 120))
+
+                    cella_name = fake.word()
+
+                    location = geolocator.geocode(cella_name)
+                    if location:
+                        latitude = location.latitude
+                        longitude = location.longitude
+                    else:
+                        latitude = None
+                        longitude = None
+
+                    # Create CellaTelefonica node
+                    session.run(
+                        "MERGE (cella:CellaTelefonica {nome: $nome}) "
+                        "ON CREATE SET cella.latitude = $latitude, cella.longitude = $longitude",
+                        nome=cella_name,
+                        latitude=latitude,
+                        longitude=longitude
+
+                    )
+
+                    # Connect SIM to CellaTelefonica with timestamps
+                    session.run(
+                        "MATCH (sim:SIM {serial: $serial}), (cella:CellaTelefonica {nome: $nome}) "
+                        "MERGE (sim)-[r:COLLEGATO_A]->(cella) "
+                        "SET r.connected_at = $connected_at, r.disconnected_at = $disconnected_at",
+                        serial=sim_serial,
+                        nome=cella_name,
+                        connected_at=timestamp_connected,
+                        disconnected_at=timestamp_disconnected
+                    )
+
+        print("Random relationships created successfully!")
+
+# Example usage: Create 30 random relationships with timestamps and geolocation
+create_random_relationships(30)
+driver.close()
